@@ -1,0 +1,34 @@
+[2023-06-16T20:40:15.225+0000] {taskinstance.py:1103} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: spotify_dag.whole_spotify_etl manual__2023-06-16T20:40:12.825153+00:00 [queued]>
+[2023-06-16T20:40:15.239+0000] {taskinstance.py:1103} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: spotify_dag.whole_spotify_etl manual__2023-06-16T20:40:12.825153+00:00 [queued]>
+[2023-06-16T20:40:15.240+0000] {taskinstance.py:1308} INFO - Starting attempt 1 of 2
+[2023-06-16T20:40:15.262+0000] {taskinstance.py:1327} INFO - Executing <Task(PythonOperator): whole_spotify_etl> on 2023-06-16 20:40:12.825153+00:00
+[2023-06-16T20:40:15.272+0000] {standard_task_runner.py:57} INFO - Started process 160 to run task
+[2023-06-16T20:40:15.278+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'spotify_dag', 'whole_spotify_etl', 'manual__2023-06-16T20:40:12.825153+00:00', '--job-id', '11', '--raw', '--subdir', 'DAGS_FOLDER/test.py', '--cfg-path', '/tmp/tmp36q28lcf']
+[2023-06-16T20:40:15.282+0000] {standard_task_runner.py:85} INFO - Job 11: Subtask whole_spotify_etl
+[2023-06-16T20:40:15.357+0000] {task_command.py:410} INFO - Running <TaskInstance: spotify_dag.whole_spotify_etl manual__2023-06-16T20:40:12.825153+00:00 [running]> on host aed3450bf96c
+[2023-06-16T20:40:15.725+0000] {taskinstance.py:1547} INFO - Exporting env vars: AIRFLOW_CTX_DAG_EMAIL='solbattaglia@gmailcom' AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='spotify_dag' AIRFLOW_CTX_TASK_ID='whole_spotify_etl' AIRFLOW_CTX_EXECUTION_DATE='2023-06-16T20:40:12.825153+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2023-06-16T20:40:12.825153+00:00'
+[2023-06-16T20:40:16.135+0000] {logging_mixin.py:149} INFO -    artist_name                                          song_name
+0      Pitbull                     Global Warming (feat. Sensato)
+1      Pitbull                   Don't Stop the Party (feat. TJR)
+2      Pitbull        Feel This Moment (feat. Christina Aguilera)
+3      Pitbull        Back in Time - featured in "Men In Black 3"
+4      Pitbull             Hope We Meet Again (feat. Chris Brown)
+5      Pitbull          Party Ain't Over (feat. Usher & Afrojack)
+6      Pitbull       Drinks for You (Ladies Anthem) (feat. J. Lo)
+7      Pitbull        Have Some Fun (feat. The Wanted & Afrojack)
+8      Pitbull                 Outta Nowhere (feat. Danny Mercer)
+9      Pitbull            Tchu Tchu Tcha (feat. Enrique Iglesias)
+10     Pitbull         Last Night (feat. Afrojack & Havana Brown)
+11     Pitbull                                       I'm Off That
+12     Pitbull        Echa Pa'lla (Manos Pa'rriba) (feat. Papayo)
+13     Pitbull          Everybody Fucks (feat. Akon & David Rush)
+14     Pitbull                     Get It Started (feat. Shakira)
+15     Pitbull                                 11:59 (feat. Vein)
+16     Pitbull  Rain Over Me (feat. Marc Anthony) - Benny Bena...
+17     Pitbull  International Love (feat. Chris Brown) - Jump ...
+[2023-06-16T20:40:16.143+0000] {logging_mixin.py:149} INFO - Opened database successfully
+[2023-06-16T20:40:16.153+0000] {logging_mixin.py:149} INFO - Close database successfully
+[2023-06-16T20:40:16.154+0000] {python.py:183} INFO - Done. Returned value was: None
+[2023-06-16T20:40:16.170+0000] {taskinstance.py:1350} INFO - Marking task as SUCCESS. dag_id=spotify_dag, task_id=whole_spotify_etl, execution_date=20230616T204012, start_date=20230616T204015, end_date=20230616T204016
+[2023-06-16T20:40:16.215+0000] {local_task_job_runner.py:225} INFO - Task exited with return code 0
+[2023-06-16T20:40:16.242+0000] {taskinstance.py:2651} INFO - 0 downstream tasks scheduled from follow-on schedule check
