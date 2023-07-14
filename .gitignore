@@ -2,3 +2,5 @@
 twitch
 my_played_tracks.sqlite
 logs
+auth.conf
+.conf
