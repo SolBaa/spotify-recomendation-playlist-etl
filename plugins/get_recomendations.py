@@ -17,86 +17,149 @@
 
 ## ADD SONGS TO PLAYLIST
 
-import sqlalchemy
+
+import webbrowser
+import requests
+import base64
+from urllib.parse import urlencode, quote_plus, urlparse, parse_qs
+
 import pandas as pd 
 from sqlalchemy.orm import sessionmaker
 import requests
-import json
-from datetime import datetime
-import datetime
-import sqlite3
-from airflow.models import Variable
+
+from http.server import BaseHTTPRequestHandler, HTTPServer
+import configparser
+
+# load the postgres_config values
+parser = configparser.ConfigParser()
+parser.read("auth.conf")
+
+client_id = parser.get('spotify', 'client_id')
+redirect_uri = parser.get('spotify', 'redirect_uri')
+client_secret = parser.get('spotify', 'client_secret')
+
+# Define the scopes your application is requesting
+scopes = 'user-follow-read'
 
 
-def run_spotify_recomendation():
-    DATABASE_LOCATION = "sqlite:///my_played_tracks.sqlite"
-    # TOKEN = Variable.get("spotify_token")
-    # TOKEN = 'BQB5BKqX3O58ysVd9ygz57ayZ7EwxX6E0VhcPmgsUJHElfXs4Ev37-M08hMuOo35bt4FLuxlYaqN_28YIRFa38GgMybkEGK3mKGwjFcGO0a0gzq7OBo'
-    TOKEN= 'BQANvofB_QoLUAHzB_r2IdbMuKWEsSD6KvjiwnIEJyfp1c3begb46uGLujUEXUKPjYUQszBSm2dcnctcvKnB3TuSPzSwSNrlRgDm5DBr3b883MklZqT2Y0ibHwQ'
 
-      # Extract part of the ETL process
- 
+# function to get the authorization code
+def get_auth_code(self):
+    query = urlparse(self.path).query
+    auth_code = parse_qs(query)['code'][0]
+    return auth_code
+
+# function to get the access token
+def get_access_token(auth_code):
+    client_creds = f"{client_id}:{client_secret}"
+    client_creds_b64 = base64.b64encode(client_creds.encode()).decode()
+
+    headers = {
+        "Authorization": f"Basic {client_creds_b64}"
+    }
+
+    data = {
+        "grant_type": "authorization_code",
+        "code": auth_code,
+        "redirect_uri": redirect_uri
+    }
+
+    response = requests.post('https://accounts.spotify.com/api/token', headers=headers, data=data)
+    access_token = response.json().get('access_token')
+
+    return access_token
+
+# function to get artist data
+def get_artist_data(access_token):
     headers = {
         "Accept" : "application/json",
         "Content-Type" : "application/json",
-        "Authorization" : "Bearer {token}".format(token=TOKEN),
+        "Authorization" : f"Bearer {access_token}",
         'Scope' : 'user-follow-read'
     }
-    
-    # Convert time to Unix timestamp in miliseconds      
-    today = datetime.datetime.now()
-    yesterday = today - datetime.timedelta(days=1)
-    yesterday_unix_timestamp = int(yesterday.timestamp()) * 1000
 
-    # Download all songs you've listened to "after yesterday", which means in the last 24 hours      
-    r = requests.get("https://api.spotify.com/v1/me/following?type=artist", headers = headers)
-
+    r = requests.get("https://api.spotify.com/v1/me/following?type=artist", headers=headers)
     data = r.json()
-    print(data)
 
-    # song_names = []
-    artist_id = []
+    artist_ids = [artist['id'] for artist in data['artists']['items']]
+
+    return artist_ids
+
+# function to get top artist data
+def get_top_artist_data(access_token,artists_id):
+    headers = {
+        "Accept" : "application/json",
+        "Content-Type" : "application/json",
+        "Authorization" : f"Bearer {access_token}"
+    }
+
+    artist_df = []
+    for artist_id in artists_id:
+        r = requests.get(f"https://api.spotify.com/v1/artists/{artist_id}", headers=headers)
+        data = r.json()
+
+        artist_name = data['name']
+        artist_id = data['id']
+        artist_popularity = data['popularity']
+        artist_followers =  data['followers']['total']
+        artist_genres = data['genres']
+ 
+
+        artist_dict = {
+            'artist_name' : artist_name,
+            'artist_id' : artist_id,
+            'artist_popularity' : artist_popularity,
+            'artist_followers' : artist_followers,
+            'artist_genres' : artist_genres
+        }
+        artist_df.append(artist_dict)
+
+    # artist_df = pd.DataFrame(artist_dict,columns=['artist_name','artist_id','artist_popularity','artist_followers','artist_genres'] )
+    ar_df = pd.DataFrame(artist_df, columns=['artist_name','artist_id','artist_popularity','artist_followers','artist_genres'])
+    return ar_df
+        
 
 
-    # Extracting only the relevant bits of data from the json object      
-    # for artist in data['items']:
-    #    artist_id.append(artist['id'])
-    #    song_names.append(song['name'])
 
-    #    song_dict = {
-    #           "artist_name" : artist_names,
-    #             "song_name" : song_names,
-    #    }
-    
+# handler for the server
+class RequestHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b'You can close this window')
 
-    # song_df = pd.DataFrame(song_dict, columns = ['artist_name', 'song_name'])
-    print(artist_id)
-run_spotify_recomendation()
-    
-    # Validate
-    # if check_if_valid_data(song_df):
-    #     print("Data valid, proceed to Load stage")
+        auth_code = get_auth_code(self)
+        access_token = get_access_token(auth_code)
+        artist_ids = get_artist_data(access_token)
+        artist_data = get_top_artist_data(access_token,artist_ids)
 
-    # Load
+        # print(f"Your access token is: {access_token}")
+        # print(f"Artist IDs: {artist_ids}")
+        print(f"Artist Data: {artist_data}")
 
-    # engine = sqlalchemy.create_engine(DATABASE_LOCATION)
-    # conn = sqlite3.connect('my_played_tracks.sqlite')
-    # cursor = conn.cursor()
+# function to open the authorization URL in the browser
+def open_auth_url():
+    params = {
+        "client_id": client_id,
+        "response_type": "code",
+        "redirect_uri": redirect_uri,
+        "scope": scopes
+    }
 
-    # sql_query = """
-    # CREATE TABLE IF NOT EXISTS my_played_tracks(
-    #     song_name VARCHAR(200),
-    #     artist_name VARCHAR(200)
-    # )
-    # """
+    url_params = urlencode(params)
+    auth_url = f"https://accounts.spotify.com/authorize?{url_params}"
 
-    # cursor.execute(sql_query)
-    # print("Opened database successfully")
+    webbrowser.open(auth_url)
 
-    # try:
-    #     song_df.to_sql("my_played_tracks", engine, index=False, if_exists='append')
-    # except:
-    #     print("Data already exists in the database")
+# run the server
+def run_server():
+    server = HTTPServer(('localhost', 8080), RequestHandler)
+    server.handle_request()
 
-    # conn.close()
-    # print("Close database successfully")
+# main program flow
+def main():
+    open_auth_url()
+    run_server()
+
+if __name__ == "__main__":
+    main()

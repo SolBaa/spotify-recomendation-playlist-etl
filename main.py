@@ -40,7 +40,7 @@ from airflow.models import Variable
 #     return True
 
 
-def run_spotify_etl():
+if __name__ == "__main__":
     DATABASE_LOCATION = "sqlite:///my_played_tracks.sqlite"
     USER_ID = ''
     TOKEN = Variable.get("spotify_token")
@@ -110,4 +110,4 @@ def run_spotify_etl():
     print("Close database successfully")
 
 
-run_spotify_etl()
+# run_spotify_etl()

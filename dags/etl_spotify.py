@@ -3,8 +3,12 @@ from datetime import datetime
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 from airflow.utils.dates import days_ago
+import os
+import sys
 
+sys.path.append("/home/sol/Desktop/twitch-report")
 from get_album import run_spotify_etl
+from plugins.get_recomendations import *
 
 
 default_args = {
@@ -33,4 +37,19 @@ run_etl = PythonOperator(
     dag=dag,
 )
 
-run_etl
+with DAG('spotify_dag', default_args=default_args, schedule_interval=timedelta(days=1)) as dag:
+
+    get_album = PythonOperator(
+        task_id='get_album',
+        python_callable=run_spotify_etl,
+        provide_context=True
+    )
+
+    get_recomendation = PythonOperator(
+        task_id='run_spotify_recomendation',
+        python_callable=run_spotify_recomendation,
+        provide_context=True
+    )
+
+
+    get_album >> get_recomendation
